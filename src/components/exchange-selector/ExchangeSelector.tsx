@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { memo, useState } from 'react';
 import { ExchangeCoin } from '../../data/types';
 import { Select } from 'antd';
 const { Option } = Select;
@@ -67,4 +67,4 @@ const ExchangeSelector = ({
   );
 };
 
-export default ExchangeSelector;
+export default memo(ExchangeSelector);

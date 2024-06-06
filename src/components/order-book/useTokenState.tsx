@@ -6,6 +6,11 @@ type Props = {
   exchangeCoin: ExchangeCoin | null;
 };
 
+/**
+ * An abstraction to get the token state given the needed exchangeCoin. It takes care of
+ * subscribing and unsubscribing to updates and returning the latest token state on each
+ * update.
+ */
 export default function useTokenState({
   marketSubscriber,
   exchangeCoin,
@@ -27,6 +32,7 @@ export default function useTokenState({
       return;
     }
     if (unsubscribeFunc.current !== null) {
+      // Before subscribing in the same component, unsubscribe from previous component.
       unsubscribeFunc.current();
     }
 
@@ -45,13 +51,6 @@ export default function useTokenState({
     lastExchangeCoin,
     setLastExchangeCoin,
   ]);
-
-  // useEffect(() => {
-  //   console.log('market subscribe changed');
-  // }, [marketSubscriber]);
-  // // useEffect(() => {
-  // //   console.log('exchangecoin changed');
-  // // }, [exchangeCoin]);
 
   return latestState;
 }

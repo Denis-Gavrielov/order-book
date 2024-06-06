@@ -1,13 +1,15 @@
-import React, { memo } from 'react';
-import { OrderBookState, TokenState } from '../../data/types';
+import React from 'react';
+import { TokenState } from '../../data/types';
 import MarketDepth from './MarketDepth';
 
 type Props = {
   tokenState: TokenState | null;
 };
 
+/**
+ * Display bid and ask side of market data.
+ */
 const OrderBook = (props: Props) => {
-  // NOTE: we definitely need to have some sort of unsubscriber as well.
   const { tokenState } = props;
 
   if (tokenState === null) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Table } from 'antd';
 import { BookDepth, Side } from '../../data/types';
 
@@ -31,14 +31,11 @@ const MarketDepth = (props: Props) => {
 
   const dataSource = bookDepth
     .sort((leftItem: [number, number], rightItem: [number, number]) => {
+      // order by price.
       const leftPrice = leftItem[1];
       const rightPrice = rightItem[1];
 
-      //   if (side === 'ask') {
-      // return leftPricfe - rightPrice;
-      //   } else {
       return rightPrice - leftPrice;
-      //   }
     })
     .map((items: [number, number], index: number) => {
       const [volume, price] = items;
@@ -66,4 +63,4 @@ const MarketDepth = (props: Props) => {
   );
 };
 
-export default MarketDepth;
+export default memo(MarketDepth);

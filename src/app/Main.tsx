@@ -1,26 +1,15 @@
 import React, { useCallback, useState } from 'react';
-import useOrderBookData from '../data/useOrderBookWebSocket';
-import ExchangeSelector from '../components/exchange-selector/ExchangeSelector';
-import useOrderBookAggregator from '../data/useOrderBookAggregator';
-import OrderBook from '../components/order-book/OrderBook';
-import { ExchangeCoin } from '../data/types';
-import useTokenState from '../components/order-book/useTokenState';
-import { CloseCircleOutlined } from '@ant-design/icons';
-import TradingData from '../components/order-book/TradingData';
+import useMarketData from '../data/useMarketData';
+import OrderBookPage from '../components/order-book/OrderBookPage';
 import { Button } from 'antd';
-
-// type TradingDataMap = {
-//   [key: string]:;
-// };
 
 const Main = () => {
   const { availableCoins, availableExchanges, marketSubscriber } =
-    useOrderBookAggregator(); // probably this would be called "marketState"
+    useMarketData();
 
   const [components, setComponents] = useState<number[]>([1]);
 
   const onAddExchange = useCallback(() => {
-    ('');
     const lastKey = components[components.length - 1];
     setComponents([...components, lastKey + 1]);
   }, [components, setComponents]);
@@ -31,7 +20,7 @@ const Main = () => {
       <div className="flex">
         {[...components].map((key: number) => {
           return (
-            <TradingData
+            <OrderBookPage
               key={key}
               onClose={() => {
                 setComponents(

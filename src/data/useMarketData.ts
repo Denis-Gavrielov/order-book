@@ -1,15 +1,5 @@
-// reads the order book data, keeps all data alive
-// shows the current data and which fields have been changed since last data.
-// essentially is responsible for updates for each exchange.
-
-// probably we want another component which does this only for each individual
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  MarketSubscriber,
-  OrderBookMessage,
-  OrderBookState,
-  TokenState,
-} from './types';
+import { MarketSubscriber, OrderBookMessage, TokenState } from './types';
 import useOrderBookWebSocket from './useOrderBookWebSocket';
 
 function createCompoundKey(coin: string, exchange: string): string {
@@ -20,23 +10,20 @@ type RegisteredSubscribers = {
   [key: string]: { [key: string]: (tokenState: TokenState) => void };
 };
 
-// specify that we could try to optimise be throwing away old data.
-
 /**
  * Subscribes to the stream of the market updates and manages those internally.
  *
- *
+ * Optionally we could keep the current state of all the coins and exchanges to have instant load
+ * of the last state. In this case the ticks are so fast and regular that it is not needed for this
+ * simulated environment.
  *
  * @returns
  */
-export default function useOrderBookAggregator(): {
+export default function useMarketData(): {
   availableCoins: Set<string>;
   availableExchanges: Set<string>;
   marketSubscriber: MarketSubscriber;
 } {
-  // say this state object is kinda optional -> it's only necessary if we want fast loads.
-  // const [orderBookState, setOrderBookState] = useState<OrderBookState>({}); // can use immer.
-
   /**
    * NOTE: This part of the code is assuming that all coins run on all exchanges. If this was not
    * the case I would observe which coins run on which exchanges and then have the available
@@ -95,7 +82,7 @@ export default function useOrderBookAggregator(): {
         orderBookMessage.exchange
       );
 
-      const newMarketData = {
+      const newTokenState = {
         lastTimestamp: orderBookMessage.timestamp,
         currentData: {
           bids: orderBookMessage.bids,
@@ -103,23 +90,14 @@ export default function useOrderBookAggregator(): {
         },
       };
 
-      const newOrderBookState: OrderBookState = {
-        ...orderBookState,
-        [compoundKey]: newMarketData,
-      }; // can use immer
-
-      setOrderBookState(newOrderBookState);
-
-      // console.log(`subscribers: ${JSON.stringify(registeredSubscribers)}`);
       // update all listeners
       if (compoundKey in registeredSubscribers.current) {
-        // console.log(`Updating for key ${compoundKey}`);
-        // console.log(orderBookMessage);
         Object.values(registeredSubscribers.current[compoundKey]).forEach(
-          (func) => func(newMarketData)
+          (func) => func(newTokenState)
         );
       }
 
+      // add coins and exchanges which we have not seen yet.
       if (!availableCoins.has(orderBookMessage.coin)) {
         const newCoins = new Set([...availableCoins, orderBookMessage.coin]);
         setAvailableCoins(newCoins);
@@ -133,33 +111,22 @@ export default function useOrderBookAggregator(): {
       }
     },
     [
-      setOrderBookState,
-      orderBookState,
       setAvailableExchanges,
       setAvailableCoins,
       availableCoins,
       availableExchanges,
-      // registeredSubscribers,
     ]
   );
 
-  const webSocketReadyState = useOrderBookWebSocket(updateOrderBookState); // return not needed
+  useOrderBookWebSocket(updateOrderBookState);
 
   const ret = useMemo(
     () => ({
-      // orderBookState,
-      // webSocketReadyState,
       availableCoins,
       availableExchanges,
       marketSubscriber,
     }),
-    [
-      // orderBookState,
-      // webSocketReadyState,
-      availableCoins,
-      availableExchanges,
-      marketSubscriber,
-    ]
+    [availableCoins, availableExchanges, marketSubscriber]
   );
 
   return ret;
