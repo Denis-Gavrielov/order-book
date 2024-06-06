@@ -39,8 +39,8 @@ const ExchangeSelector = ({
   };
 
   return (
-    <div>
-      <h1>Select a coin and exchange</h1>
+    <div className="m-4">
+      <h1 className="text-3xl font-bold m-4">Select a coin and exchange</h1>
       {/* <Dropdown items={[...availableCoins]} trigger={['click']} /> */}
       <Select
         style={{ width: 200 }}

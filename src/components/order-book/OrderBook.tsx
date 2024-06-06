@@ -20,11 +20,13 @@ const OrderBook = (props: Props) => {
   }
 
   return (
-    <div>
-      <h1 className="text-green-500">Order book</h1>
-      <div className="flex justify-between space-x-4">
-        <MarketDepth side={'bid'} bookDepth={tokenState.currentData.bids} />
-        <MarketDepth side={'ask'} bookDepth={tokenState.currentData.asks} />
+    <div className="flex justify-center m-4">
+      <div className="w-1/4 justify-center">
+        <h1 className="text-3xl font-bold">Order book</h1>
+        <div className="flex justify-center items-center space-x-4">
+          <MarketDepth side={'bid'} bookDepth={tokenState.currentData.bids} />
+          <MarketDepth side={'ask'} bookDepth={tokenState.currentData.asks} />
+        </div>
       </div>
     </div>
   );

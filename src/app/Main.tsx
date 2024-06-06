@@ -24,9 +24,6 @@ const Main = () => {
 
   return (
     <div className="App">
-      Hello World!
-      {/* <span>Last message: {orderBookData.lastMessage}</span> */}
-      {/* <span>Ready state: {orderBookData.connectionStatus}</span> */}
       <ExchangeSelector
         setSelectorState={setSelectorState}
         availableCoins={availableCoins}

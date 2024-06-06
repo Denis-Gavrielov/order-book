@@ -7,23 +7,27 @@ type Props = {
   bookDepth: BookDepth;
 };
 
-const columns = [
-  {
-    title: 'Volume',
-    dataIndex: 'volume',
-    key: 'volume',
-    width: 120,
-  },
-  {
-    title: 'Price',
-    dataIndex: 'price',
-    key: 'price',
-    width: 100,
-    className: 'text-green-500',
-  },
-];
 const MarketDepth = (props: Props) => {
   const { side, bookDepth } = props;
+
+  const color = side === 'bid' ? 'text-green-700' : 'text-red-700';
+
+  const columns = [
+    {
+      title: 'Volume',
+      dataIndex: 'volume',
+      key: 'volume',
+      width: 120,
+      className: color,
+    },
+    {
+      title: 'Price',
+      dataIndex: 'price',
+      key: 'price',
+      width: 100,
+      className: color,
+    },
+  ];
 
   const dataSource = bookDepth.map((items: [number, number], index: number) => {
     const [volume, price] = items;
@@ -33,15 +37,19 @@ const MarketDepth = (props: Props) => {
       price,
     };
   });
+
+  const getTitle = () => {
+    const string = side === 'bid' ? 'Bid' : 'Ask';
+    return <h1 className="text-xl font-bold">{string}</h1>;
+  };
   return (
-    <div>
+    <div className="flex flex-col items-center w-auto">
       <Table
         dataSource={dataSource}
         columns={columns}
         pagination={false}
         tableLayout="fixed"
-        title={() => side}
-        className="w-1/2"
+        title={getTitle}
       />
     </div>
   );
