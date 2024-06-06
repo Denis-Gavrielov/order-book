@@ -2,17 +2,12 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import WebSocketComponent from './WebSocketDemo';
-import useOrderBookData from './connection/useOrderBookData';
+import useOrderBookData from './data/useOrderBookWebSocket';
+import Main from './app/Main';
 
 function App() {
-  const orderBookData = useOrderBookData();
   return (
-    <div className="App">
-      Hello World!
-      <span>Last message: {orderBookData.lastMessage}</span>
-      <span>Ready state: {orderBookData.connectionStatus}</span>
-      {/* <WebSocketComponent /> */}
-    </div>
+    <Main/>
   );
 }
 
