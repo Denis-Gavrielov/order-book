@@ -3,16 +3,14 @@
 // essentially is responsible for updates for each exchange.
 
 // probably we want another component which does this only for each individual
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  ExchangeCoin,
   MarketSubscriber,
   OrderBookMessage,
   OrderBookState,
   TokenState,
 } from './types';
 import useOrderBookWebSocket from './useOrderBookWebSocket';
-import { ReadyState } from 'react-use-websocket';
 
 function createCompoundKey(coin: string, exchange: string): string {
   return coin + '|' + exchange;
@@ -23,26 +21,33 @@ type RegisteredSubscribers = {
 };
 
 // specify that we could try to optimise be throwing away old data.
+
+/**
+ * Subscribes to the stream of the market updates and manages those internally.
+ *
+ *
+ *
+ * @returns
+ */
 export default function useOrderBookAggregator(): {
-  orderBookState: OrderBookState;
-  webSocketReadyState: ReadyState;
   availableCoins: Set<string>;
   availableExchanges: Set<string>;
   marketSubscriber: MarketSubscriber;
 } {
-  // maybe "useOrderBookState"
-
   // say this state object is kinda optional -> it's only necessary if we want fast loads.
-  const [orderBookState, setOrderBookState] = useState<OrderBookState>({}); // can use immer.
+  // const [orderBookState, setOrderBookState] = useState<OrderBookState>({}); // can use immer.
+
+  /**
+   * NOTE: This part of the code is assuming that all coins run on all exchanges. If this was not
+   * the case I would observe which coins run on which exchanges and then have the available
+   * exchanges per coin.
+   */
   const [availableCoins, setAvailableCoins] = useState<Set<string>>(new Set());
   const [availableExchanges, setAvailableExchanges] = useState<Set<string>>(
     new Set()
   );
-  // TODO: specify in README that I'm assuming all exchanges have all coins.
-  const [registeredSubscribers, setRegisteredSubscribers] =
-    useState<RegisteredSubscribers>({}); // compoundKey to multiple subscribers.
 
-  // const unsubscribeForUpdates = useCallback(() => )
+  const registeredSubscribers = useRef<RegisteredSubscribers>({});
 
   const marketSubscriber = useCallback(
     (
@@ -50,34 +55,46 @@ export default function useOrderBookAggregator(): {
       exchange: string,
       onUpdate: (tokenState: TokenState) => void
     ): (() => void) => {
+      console.log(`subscribing to coin ${coin} and exchange ${exchange}`);
       const compoundKey = createCompoundKey(coin, exchange);
-      const registerKey = Math.random();
+      const registerKey = String(Math.random()).slice(2);
 
-      setRegisteredSubscribers({
-        ...registeredSubscribers,
-        [compoundKey]: { [registerKey]: onUpdate }, // fix this for multiple
-      });
+      if (compoundKey in registeredSubscribers.current) {
+        registeredSubscribers.current[compoundKey][registerKey] = onUpdate;
+      } else {
+        const obj = {
+          [registerKey]: onUpdate,
+        };
+        registeredSubscribers.current[compoundKey] = obj;
+      }
 
+      /**
+       * Unsubscribe from the data stream.
+       */
       const unsubscribe = () => {
-        // TODO: ensure that given the registerKey we unsubscribe.
-        // however, this becomes tricky because how do we know about the currently registered
-        // subscribers?
+        delete registeredSubscribers.current[compoundKey][registerKey];
+        if (
+          Object.keys(registeredSubscribers.current[compoundKey]).length === 0
+        ) {
+          delete registeredSubscribers.current[compoundKey];
+        }
       };
       return unsubscribe;
     },
-    [setRegisteredSubscribers, registeredSubscribers]
+    []
   );
 
   const updateOrderBookState = useCallback(
     (lastMessage: MessageEvent<any>) => {
-      const orderBookMessage: OrderBookMessage = JSON.parse(lastMessage.data); // ideally have validation
+      // In a real application I would likely use some types from Swagger or have some validation
+      // of the payload here to ensure that the data is not corrupted.
+      const orderBookMessage: OrderBookMessage = JSON.parse(lastMessage.data);
 
       const compoundKey = createCompoundKey(
         orderBookMessage.coin,
         orderBookMessage.exchange
       );
 
-      // can show delta as well. probably not worth it
       const newMarketData = {
         lastTimestamp: orderBookMessage.timestamp,
         currentData: {
@@ -93,10 +110,13 @@ export default function useOrderBookAggregator(): {
 
       setOrderBookState(newOrderBookState);
 
+      // console.log(`subscribers: ${JSON.stringify(registeredSubscribers)}`);
       // update all listeners
-      if (compoundKey in registeredSubscribers) {
-        Object.values(registeredSubscribers[compoundKey]).forEach((func) =>
-          func(newMarketData)
+      if (compoundKey in registeredSubscribers.current) {
+        // console.log(`Updating for key ${compoundKey}`);
+        // console.log(orderBookMessage);
+        Object.values(registeredSubscribers.current[compoundKey]).forEach(
+          (func) => func(newMarketData)
         );
       }
 
@@ -119,23 +139,23 @@ export default function useOrderBookAggregator(): {
       setAvailableCoins,
       availableCoins,
       availableExchanges,
-      registeredSubscribers,
+      // registeredSubscribers,
     ]
   );
 
-  const webSocketReadyState = useOrderBookWebSocket(updateOrderBookState);
+  const webSocketReadyState = useOrderBookWebSocket(updateOrderBookState); // return not needed
 
   const ret = useMemo(
     () => ({
-      orderBookState,
-      webSocketReadyState,
+      // orderBookState,
+      // webSocketReadyState,
       availableCoins,
       availableExchanges,
       marketSubscriber,
     }),
     [
-      orderBookState,
-      webSocketReadyState,
+      // orderBookState,
+      // webSocketReadyState,
       availableCoins,
       availableExchanges,
       marketSubscriber,

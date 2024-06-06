@@ -1,5 +1,3 @@
-import { TupleType } from 'typescript';
-
 export type BookDepth = [
   [number, number],
   [number, number],
@@ -17,7 +15,7 @@ export type OrderBookMessage = {
 };
 
 export type TokenState = {
-  lastTimestamp: string;
+  lastTimestamp: string; // timestamp is currently not used but could be in future.
   currentData: {
     bids: BookDepth;
     asks: BookDepth;

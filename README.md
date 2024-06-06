@@ -52,3 +52,10 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 used antd for quick and powerful components
 
 mention tailwind
+
+mention how aggregation might be an optimisation.
+
+say that the prices are sorted but the ask seems to be higher than bid sometimes.
+
+talk about validation
+

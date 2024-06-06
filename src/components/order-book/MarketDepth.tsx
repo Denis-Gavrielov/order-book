@@ -29,14 +29,25 @@ const MarketDepth = (props: Props) => {
     },
   ];
 
-  const dataSource = bookDepth.map((items: [number, number], index: number) => {
-    const [volume, price] = items;
-    return {
-      key: index,
-      volume,
-      price,
-    };
-  });
+  const dataSource = bookDepth
+    .sort((leftItem: [number, number], rightItem: [number, number]) => {
+      const leftPrice = leftItem[1];
+      const rightPrice = rightItem[1];
+
+      //   if (side === 'ask') {
+      // return leftPricfe - rightPrice;
+      //   } else {
+      return rightPrice - leftPrice;
+      //   }
+    })
+    .map((items: [number, number], index: number) => {
+      const [volume, price] = items;
+      return {
+        key: index,
+        volume,
+        price,
+      };
+    });
 
   const getTitle = () => {
     const string = side === 'bid' ? 'Bid' : 'Ask';

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ExchangeCoin, MarketSubscriber, TokenState } from '../../data/types';
 
 type Props = {
@@ -10,12 +10,24 @@ export default function useTokenState({
   marketSubscriber,
   exchangeCoin,
 }: Props) {
-  // const { marketSubscriber, exchangeCoin } = props;
   const [latestState, setLatestState] = useState<TokenState | null>(null);
+  const [lastExchangeCoin, setLastExchangeCoin] = useState<ExchangeCoin | null>(
+    null
+  );
+  const unsubscribeFunc = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (exchangeCoin === null) {
       return;
+    }
+    if (
+      exchangeCoin.coin === lastExchangeCoin?.coin &&
+      exchangeCoin.exchange === lastExchangeCoin?.exchange
+    ) {
+      return;
+    }
+    if (unsubscribeFunc.current !== null) {
+      unsubscribeFunc.current();
     }
 
     const unsubscribe = marketSubscriber(
@@ -23,10 +35,23 @@ export default function useTokenState({
       exchangeCoin.exchange,
       setLatestState
     );
-    return () => {
-      unsubscribe();
-    };
-  }, [exchangeCoin, setLatestState, marketSubscriber]);
+
+    unsubscribeFunc.current = unsubscribe;
+    setLastExchangeCoin(exchangeCoin);
+  }, [
+    exchangeCoin,
+    setLatestState,
+    marketSubscriber,
+    lastExchangeCoin,
+    setLastExchangeCoin,
+  ]);
+
+  // useEffect(() => {
+  //   console.log('market subscribe changed');
+  // }, [marketSubscriber]);
+  // // useEffect(() => {
+  // //   console.log('exchangecoin changed');
+  // // }, [exchangeCoin]);
 
   return latestState;
 }

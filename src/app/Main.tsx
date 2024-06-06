@@ -1,38 +1,50 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import useOrderBookData from '../data/useOrderBookWebSocket';
 import ExchangeSelector from '../components/exchange-selector/ExchangeSelector';
 import useOrderBookAggregator from '../data/useOrderBookAggregator';
 import OrderBook from '../components/order-book/OrderBook';
 import { ExchangeCoin } from '../data/types';
 import useTokenState from '../components/order-book/useTokenState';
+import { CloseCircleOutlined } from '@ant-design/icons';
+import TradingData from '../components/order-book/TradingData';
+import { Button } from 'antd';
+
+// type TradingDataMap = {
+//   [key: string]:;
+// };
 
 const Main = () => {
-  const {
-    orderBookState,
-    availableCoins,
-    availableExchanges,
-    marketSubscriber,
-  } = useOrderBookAggregator(); // probably this would be called "marketState"
+  const { availableCoins, availableExchanges, marketSubscriber } =
+    useOrderBookAggregator(); // probably this would be called "marketState"
 
-  const [exchangeCoin, setSelectorState] = useState<ExchangeCoin | null>(null);
+  const [components, setComponents] = useState<number[]>([1]);
 
-  // TODO: from orderBook aggregator, make sure that we have a "list to this" function.
-  // That will return a thing that returns the updates which we can send into the
-  // order book.
-
-  const tokenState = useTokenState({ marketSubscriber, exchangeCoin });
+  const onAddExchange = useCallback(() => {
+    ('');
+    const lastKey = components[components.length - 1];
+    setComponents([...components, lastKey + 1]);
+  }, [components, setComponents]);
 
   return (
     <div className="App">
-      <ExchangeSelector
-        setSelectorState={setSelectorState}
-        availableCoins={availableCoins}
-        availableExchanges={availableExchanges}
-      />
-      {exchangeCoin !== null ? <OrderBook tokenState={tokenState} /> : null}
-      {/* ^ takes the exchange data, or takes a hook to get the exact data that it needs. 
-        From the exchange selector I can already see what data we want.
-        */}
+      <Button onClick={onAddExchange}>Add order book</Button>
+      <div className="flex">
+        {[...components].map((key: number) => {
+          return (
+            <TradingData
+              key={key}
+              onClose={() => {
+                setComponents(
+                  components.filter((value: number) => value !== key)
+                );
+              }}
+              availableCoins={availableCoins}
+              availableExchanges={availableExchanges}
+              marketSubscriber={marketSubscriber}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };
