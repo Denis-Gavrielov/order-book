@@ -22,6 +22,10 @@ This is an market order book example web app subscribing to `wss://mock.lo.tech:
 }
 ```
 
+This is how it should look like once started.
+
+[Screenshot of web app](example-screenshot.png)
+
 ## Design decisions
 
 ### Design decisions
