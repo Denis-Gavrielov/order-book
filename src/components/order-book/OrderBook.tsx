@@ -1,9 +1,33 @@
-import React from 'react'
+import React, { memo } from 'react';
+import { OrderBookState, TokenState } from '../../data/types';
+import MarketDepth from './MarketDepth';
 
-const OrderBook = () => {
+type Props = {
+  tokenState: TokenState | null;
+};
+
+const OrderBook = (props: Props) => {
+  // NOTE: we definitely need to have some sort of unsubscriber as well.
+  const { tokenState } = props;
+
+  if (tokenState === null) {
+    return (
+      <div>
+        <h1>Order book</h1>
+        <p>Loading market data ...</p>
+      </div>
+    );
+  }
+
   return (
-    <div>OrderBook</div>
-  )
-}
+    <div>
+      <h1 className="text-green-500">Order book</h1>
+      <div className="flex justify-between space-x-4">
+        <MarketDepth side={'bid'} bookDepth={tokenState.currentData.bids} />
+        <MarketDepth side={'ask'} bookDepth={tokenState.currentData.asks} />
+      </div>
+    </div>
+  );
+};
 
-export default OrderBook
+export default OrderBook;
